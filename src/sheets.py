@@ -1,7 +1,5 @@
 from gspread import Worksheet
 
-from src.podio import Tarefa
-
 meses = {
     1: "Janeiro",
     2: "Fevereiro",
@@ -92,3 +90,20 @@ def get_column_for_day(dia):
         if int(dia) in day_range:
             return col
     raise KeyError(f"Day {dia} is not in any range")
+
+
+def addInitialText(planilha: Worksheet, dia: int, mes: int, area: str, colunaInicio, colunaEnd, linha, textoDia):
+    print("Texto inicial não encontrado, inserindo")
+
+    textoDia = "SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA " + str(dia) + "/" + str(mes)
+    planilha.merge_cells(area)
+    planilha.format(area, cell_format)
+    planilha.update_acell(area.split(":")[0], textoDia)
+
+    modelo_texto = ["Nº", "DATA DA ENTREGA", "MEMBRO", "ATIVIDADE", "PUNIÇÃO"]
+    planilha.format(f"{colunaInicio}{linha}" + ":" + f"{colunaEnd}{linha}", cell_format)
+
+    for i, col in enumerate(range(ord(colunaInicio), ord(colunaEnd) + 1)):
+        texto = modelo_texto[i]
+        planilha.update_acell(f"{chr(col)}{linha}", texto)
+    print("Texto  inicial inserido")

@@ -24,7 +24,7 @@ def getPath():
             # Otherwise, use the directory of the script (or executable)
             base_path = os.path.dirname(__file__)
     except:
-        base_path = os.getcwd()
+        base_path = os.getcwd() or '/home/brenopaz/credentials.json'
         print('Error getting base path:', traceback.format_exc())
     return base_path
 

@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
+client_id = os.getenv("CLIENT_ID_DEV")
+client_secret = os.getenv("CLIENT_SECRET_DEV")
 username = os.getenv("USER")
 password = os.getenv("PASSWORD")
 space_id = os.getenv("WORKSPACE")

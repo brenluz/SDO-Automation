@@ -27,8 +27,8 @@ def findEmpty(worksheet, column):
 cell_format = {
     "backgroundColor": {
         "red": 0.0,
-        "green": 0.5,
-        "blue": 0.5
+        "green": 0.502,
+        "blue": 0.502
     },
     "textFormat": {
         "foregroundColor": {

@@ -31,10 +31,7 @@ def main():
     colunaEnd = chr(ord(colunaInicio) + 4)
     linhaDia = int(area.split(":")[0][1:])
 
-    textoDia = "SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA " + dia + "/" + mes
-
-    print(planilhaMes.find(textoDia))
-
+    textoDia = "SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA " + str(diaAtual) + "/" + mes
     if planilhaMes.find(textoDia) is None:
         sheets.addInitialText(planilhaMes, diaAtual, mes, area, colunaInicio, colunaEnd, linhaDia + 1, textoDia)
         linhaDia = linhaDia + 2  # Pula as duas linhas do texto inicial
@@ -45,6 +42,9 @@ def main():
     linhaId = 50
     if planilhaMes.find('Tarefas adicionadas') is None:
         planilhaMes.update_acell('A' + str(linhaId), 'Tarefas adicionadas')
+    else:
+        planilhaMes.col_values(1)
+        linhaId = len(planilhaMes.col_values(1))
     linhaId += 1
 
     sumario_tarefas = podio.get_tasks_in_space()
@@ -66,9 +66,11 @@ def main():
 
         if planilhaMes.cell(linhaId, 1).value != str(tarefa.taskId):
             if tarefa.data == f"{diaAtual}/{mes}":
-                taskLinha = int(linhaDia) + addedTarefas
+                taskLinha = int(linhaDia) + addedTarefas + 1
                 cell_num = planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 1)
+                print(cell_num.value)
                 if not cell_num.value or cell_num.value == '0':
+                    print('b')
                     planilhaMes.format(f"{colunaInicio}{taskLinha}" + ":" + f"{colunaEnd}{taskLinha}", {
                         "borders": {
                             "top": {"style": "SOLID"},
@@ -88,3 +90,6 @@ def main():
                         coluna = chr(col)
                         planilhaMes.update_acell(f"{coluna}{taskLinha}", contentUpdate[i])
                     addedTarefas += 1
+
+
+main()

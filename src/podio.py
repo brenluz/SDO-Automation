@@ -49,4 +49,4 @@ class Tarefa:
         self.punicao = punicao
 
     def returnAtrributes(self):
-        return [self.taskId, self.data, self.gerente, self.atividade, self.punicao]
+        return [self.data, self.gerente, self.atividade, self.punicao]

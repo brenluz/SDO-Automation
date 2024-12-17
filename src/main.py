@@ -1,19 +1,22 @@
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
 from gspread import WorksheetNotFound, Worksheet
 
-from src import sheets
-from src import podio
-from src.authSheets import getSheet
-from src.podio import Tarefa
+import sheets
+import podio
+from authSheets import getSheet
+from podio import Tarefa
 
-if __name__ == '__main__':
+load_dotenv()
 
+
+def main():
     urlSDO = os.getenv("teste")
     sdo = getSheet(urlSDO)
     data = datetime.now()
-    ano, mes, diaAtual = str(data).split(" ")[0].split("-")
+    ano, mes, dia = str(data).split(" ")[0].split("-")
 
     try:
         planilhaMes: Worksheet = sdo.worksheet(sheets.meses[int(mes)])
@@ -22,31 +25,27 @@ if __name__ == '__main__':
         print(e)
         exit(1)
 
-    textoDia = "SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA" + diaAtual + "/" + mes
-    diaAtual = int(diaAtual) - 1
-
+    diaAtual = int(dia)
     area = sheets.findArea(planilhaMes, diaAtual)
     colunaInicio = sheets.get_column_for_day(diaAtual)
     colunaEnd = chr(ord(colunaInicio) + 4)
     linhaDia = int(area.split(":")[0][1:])
 
+    textoDia = "SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA " + dia + "/" + mes
+
+    print(planilhaMes.find(textoDia))
+
     if planilhaMes.find(textoDia) is None:
-        print("Texto inicial não encontrado, inserindo")
-
-        planilhaMes.merge_cells(area)
-        planilhaMes.format(area, sheets.cell_format)
-        planilhaMes.update_acell(area.split(":")[0], textoDia)
-
-        modelo_texto = ["Nº", "DATA DA ENTREGA", "MEMBRO", "ATIVIDADE", "PUNIÇÃO"]
-        planilhaMes.format(f"{colunaInicio}{linhaDia + 1}" + ":" + f"{colunaEnd}{linhaDia + 1}", sheets.cell_format)
-        for i, col in enumerate(range(ord(colunaInicio), ord(colunaEnd) + 1)):
-            texto = modelo_texto[i]
-            print("linhadia", linhaDia)
-            planilhaMes.update_acell(f"{chr(col)}{linhaDia + 1}", texto)
-        print("Texto  inicial inserido")
-        linhaDia = linhaDia + 2
+        sheets.addInitialText(planilhaMes, diaAtual, mes, area, colunaInicio, colunaEnd, linhaDia + 1, textoDia)
+        linhaDia = linhaDia + 2  # Pula as duas linhas do texto inicial
     else:
-        linhaDia = linhaDia - 1
+        linhaDia = linhaDia - 3  # Se o texto inicial ja existe a linhaDia e a primeira linha vazia
+        print("Texto inicial encontrado")
+
+    linhaId = 50
+    if planilhaMes.find('Tarefas adicionadas') is None:
+        planilhaMes.update_acell('A' + str(linhaId), 'Tarefas adicionadas')
+    linhaId += 1
 
     sumario_tarefas = podio.get_tasks_in_space()
     tarefas = []
@@ -58,44 +57,34 @@ if __name__ == '__main__':
         tarefaAno, tarefaMes, tarefaDia = due_date.split(" ")[0].split("-")
         tarefa_data = f"{tarefaDia}/{tarefaMes}"
         vitima = task['responsible']['name']
-
         tarefas.append(Tarefa(task_id, tarefa_data, vitima, nome_tarefa, "Atenção"))
 
-    addedTarefas = 0
+    addedTarefas = 1
     for tarefa in tarefas:
-        print(tarefa.nome)
-        print(tarefa.data)
-        print(f"{diaAtual}/{mes}")
+        contentUpdate = tarefa.returnAtrributes()
+        contentUpdate.insert(0, addedTarefas)
 
-        if tarefa.data == f"{diaAtual}/{mes}":
-            print("e")
-            taskLinha = int(linhaDia) + addedTarefas
-            cell_atividade = planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 4)
-            cell_membro = planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 3)
-            cell_id = planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 1)
+        if planilhaMes.cell(linhaId, 1).value != str(tarefa.taskId):
+            if tarefa.data == f"{diaAtual}/{mes}":
+                taskLinha = int(linhaDia) + addedTarefas
+                cell_num = planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 1)
+                if not cell_num.value or cell_num.value == '0':
+                    planilhaMes.format(f"{colunaInicio}{taskLinha}" + ":" + f"{colunaEnd}{taskLinha}", {
+                        "borders": {
+                            "top": {"style": "SOLID"},
+                            "bottom": {"style": "SOLID"},
+                            "left": {"style": "SOLID"},
+                            "right": {"style": "SOLID"}
+                        },
+                        "textFormat": {
+                            "foregroundColor": {"blue": 0.0, "green": 0.0, "red": 0.0}},
+                        "horizontalAlignment": "CENTER",
+                        "verticalAlignment": "MIDDLE"
+                    })
 
-            if cell_atividade.value != tarefa.punicao:
-                print("b")
-                if cell_membro.value != tarefa.gerente:
-                    print("c")
-                    if not planilhaMes.cell(taskLinha, ord(colunaInicio) - ord('A') + 1).value:
-                        print("d")
-
-                        planilhaMes.format(f"{colunaInicio}{taskLinha}" + ":" + f"{colunaEnd}{taskLinha}", {
-                            "borders": {
-                                "top": {"style": "SOLID"},
-                                "bottom": {"style": "SOLID"},
-                                "left": {"style": "SOLID"},
-                                "right": {"style": "SOLID"}
-                            },
-                            "textFormat": {
-                                "foregroundColor": {"blue": 0.0, "green": 0.0, "red": 0.0}},
-                            "horizontalAlignment": "CENTER",
-                            "verticalAlignment": "MIDDLE"
-                        })
-
-                        for i, col in enumerate(range(ord(colunaInicio), ord(colunaEnd) + 1)):
-                            coluna = chr(col)
-                            planilhaMes.update_acell(f"{coluna}{taskLinha}", tarefa.returnAtrributes()[i])
-        addedTarefas += 1
-
+                    planilhaMes.update_acell('A' + str(linhaId), tarefa.taskId)
+                    linhaId += 1
+                    for i, col in enumerate(range(ord(colunaInicio), ord(colunaEnd) + 1)):
+                        coluna = chr(col)
+                        planilhaMes.update_acell(f"{coluna}{taskLinha}", contentUpdate[i])
+                    addedTarefas += 1

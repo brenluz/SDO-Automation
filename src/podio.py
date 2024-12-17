@@ -2,10 +2,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
-
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
+client_id = os.getenv("CLIENT_ID_PROD")
+client_secret = os.getenv("CLIENT_SECRET_PROD")
 username = os.getenv("USER")
 password = os.getenv("PASSWORD")
 space_id = os.getenv("WORKSPACE")
@@ -49,4 +47,4 @@ class Tarefa:
         self.punicao = punicao
 
     def returnAtrributes(self):
-        return [self.taskId, self.data, self.gerente, self.atividade, self.punicao]
+        return [self.data, self.gerente, self.atividade, self.punicao]

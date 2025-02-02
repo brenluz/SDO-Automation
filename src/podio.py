@@ -6,8 +6,8 @@ load_dotenv()
 
 client_id = os.getenv("CLIENT_ID_DEV")
 client_secret = os.getenv("CLIENT_SECRET_DEV")
-username = os.getenv("USER")
-password = os.getenv("PASSWORD")
+username = os.getenv("PODIO_USER")
+password = os.getenv("PODIO_PASSWORD")
 space_id = os.getenv("WORKSPACE")
 podio_domain = "https://api.podio.com"
 
@@ -29,6 +29,7 @@ def authenticate():
 
 def get_tasks_in_space():
     access_token = authenticate()
+    print("podio authentication done")
     url = f"{podio_domain}/task/space/{space_id}/summary"
     headers = {'Authorization': f'OAuth2 {access_token}'}
     params = {

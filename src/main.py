@@ -13,33 +13,52 @@ load_dotenv()
 
 
 def main():
+    print("Starting code")
     # pega a data atual
     data = datetime.now()
+    print('data:', data)
     ano, mes, dia = str(data).split(" ")[0].split("-")
+    mes = int(mes)
+
+    horario = str(data).split(" ")[1].split(":")
+    minuto = horario[1]
+    hora = horario[0]
+
+    minutos = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    if int(hora) != 0 and int(minuto) not in minutos:
+        print("Horario de execucao incorreto")
+        return
     diaAtual = int(dia)
     # procura o url da planilha
     urlSDO = os.getenv("teste")
     sdo = getSheet(urlSDO)
 
+    sdo.worksheets()
     try:
+        print("Procurando a planilha")
         planilhaMes: Worksheet = sdo.worksheet(sheets.meses[int(mes)])
     except WorksheetNotFound as e:
         print("Nome da pagina incorreto, verifique se a planilha do mes existe")
         print(e)
-        exit(1)
+        return
 
     #  Define a area da planilha que serao inseridas as informacoes
+    print("Verificando texto inicial")
     area = sheets.findArea(planilhaMes, diaAtual)
     colunaInicio = sheets.get_column_for_day(diaAtual)
     colunaEnd = chr(ord(colunaInicio) + 4)
+    if ord(colunaEnd) > ord('Z'):
+        colunaEnd = 'A' + chr(ord(colunaEnd) - 26)
     linhaDia = int(area.split(":")[0][1:])
 
     # Adiciona o texto inicial na planilha
     linhaDia = sheets.addInitialText(planilhaMes, diaAtual, mes, area, colunaInicio, colunaEnd, linhaDia + 1)
     linhaDia += 2
 
+    print("Starting podio part")
     # Pega as tarefas do podio
     sumario_tarefas = podio.get_tasks_in_space()
+    print("Podio tasks found")
     tarefas = []
     for task in sumario_tarefas['overdue']['tasks']:
         nome_tarefa = task['text']
@@ -56,6 +75,7 @@ def main():
 
     addedTarefas = 1
 
+    print("Starting to add tasks")
     for tarefa in tarefas:
         taskNotAdded = True
         for i in ids:
@@ -99,6 +119,7 @@ def main():
                         tarefaNotchecked = False
                     else:
                         addedTarefas += 1
+    print("All tasks added, code finished")
 
 
 main()

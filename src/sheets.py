@@ -70,12 +70,10 @@ def find_last_non_empty_row(planilha: Worksheet, column):
 
     if planilha.find(texto, in_column=coluna) is None:
         col_values = planilha.col_values(coluna)
-        print(col_values)
         for idx in range(len(col_values) - 1, -1, -1):
             if col_values[idx] == '0':
                 return idx + 3
             if col_values[idx] != '':
-                print(idx)
                 return idx + 4  # Return the next row after the last non-empty cell
     elif planilha.find(texto) is not None:
         return planilha.find(texto).row
@@ -87,7 +85,10 @@ def findArea(planilha: Worksheet, dia):
         if int(dia) in day_range:
             first_empty_row = find_last_non_empty_row(planilha, col)
             # print(f"First empty row for day {dia} is {first_empty_row}")
-            area = f"{col}{first_empty_row}:{chr(ord(col) + 4)}{first_empty_row}"
+            last_col = chr(ord(col) + 4)
+            if ord(last_col) > ord('Z'):
+                last_col = 'A' + chr(ord(last_col) - 26)
+            area = f"{col}{first_empty_row}:{last_col}{first_empty_row}"
             break
     return area
 
@@ -95,6 +96,8 @@ def findArea(planilha: Worksheet, dia):
 def get_column_for_day(dia):
     for day_range, col in column_map.items():
         if int(dia) in day_range:
+            if ord(col) > ord('Z'):
+                col = 'A' + chr(ord(col) - 26)
             return col
     raise KeyError(f"Day {dia} is not in any range")
 
@@ -105,7 +108,8 @@ def add_leading_zero(value: str):
 
 def addInitialText(planilha: Worksheet, dia: int, mes: int, area: str, colunaInicio, colunaEnd, linha):
     diaText = add_leading_zero(str(dia))
-    textoDia = f"SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA {diaText}/{mes}"
+    mesText = add_leading_zero(str(mes))
+    textoDia = f"SDO - PUNIÇÕES EM ABERTO NO PODIO NO DIA {diaText}/{mesText}"
 
     if planilha.find(textoDia) is None:
         print("Texto inicial não encontrado, inserindo")
@@ -143,7 +147,6 @@ def addInitialText(planilha: Worksheet, dia: int, mes: int, area: str, colunaIni
     else:
         print("Texto inicial encontrado")
         celula = planilha.find(textoDia)
-        print('row: ', celula.row)
         return int(celula.row) + 1
 
 
